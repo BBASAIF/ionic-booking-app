@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take, map, tap, delay } from 'rxjs/operators';
 
 import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
@@ -16,7 +16,7 @@ export class PlacesService {
       'In the heart of New York City.',
       'https://imgs.6sqft.com/wp-content/uploads/2014/06/21042534/Felix_Warburg_Mansion_007.jpg',
       149.99,
-      new Date('2022-01-01'),
+      new Date('2021-01-01'),
       new Date('2022-12-31'),
       'usr1'
     ),
@@ -26,7 +26,7 @@ export class PlacesService {
       'A night with the Stars.',
       'https://i.pinimg.com/originals/61/0e/87/610e87b0783cd8dfa511f567cfc1b31e.jpg',
       249.99,
-      new Date('2022-01-01'),
+      new Date('2021-05-01'),
       new Date('2022-12-31'),
       'usr1'
     ),
@@ -36,7 +36,7 @@ export class PlacesService {
       'A Luxuries night up the Mountain.',
       'https://homesoftherich.net/wp-content/uploads/2021/03/Screen-Shot-2021-03-18-at-11.04.11-AM.png',
       189.99,
-      new Date('2022-01-01'),
+      new Date('2021-09-01'),
       new Date('2022-12-31'),
       'usr1'
     ),
@@ -51,7 +51,7 @@ export class PlacesService {
   getPlace(id: string) {
     return this.placesArray.pipe(
       take(1),
-      map(placess => ({...placess.find(p => p.id === id)}))
+      map((placess) => ({ ...placess.find((p) => p.id === id) }))
     );
   }
 
@@ -72,8 +72,16 @@ export class PlacesService {
       dateTo,
       this.authService.getUserId()
     );
-    this.placesArray.pipe(take(1)).subscribe((places) => {
-      this.placesArray.next(places.concat(newPlace));
-    });
+    return this.placesArray.pipe(
+      take(1),
+      delay(1500),
+      tap((places) => {
+        this.placesArray.next(places.concat(newPlace));
+      })
+    );
+  }
+
+  updateOffer(placeId: string, title: string, description: string){
+    return this.places.pipe(take(1));
   }
 }
