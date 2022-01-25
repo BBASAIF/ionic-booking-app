@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlacesService {
-  private placesArray: Place[] = [
+  private placesArray: Place[] = new BehaviorSubject [
     new Place(
       'p1',
       'Manhattan Mansion',
@@ -13,7 +15,8 @@ export class PlacesService {
       'https://imgs.6sqft.com/wp-content/uploads/2014/06/21042534/Felix_Warburg_Mansion_007.jpg',
       149.99,
       new Date('2022-01-01'),
-      new Date('2022-12-31')
+      new Date('2022-12-31'),
+      'usr1'
     ),
     new Place(
       'p2',
@@ -22,7 +25,8 @@ export class PlacesService {
       'https://i.pinimg.com/originals/61/0e/87/610e87b0783cd8dfa511f567cfc1b31e.jpg',
       249.99,
       new Date('2022-01-01'),
-      new Date('2022-12-31')
+      new Date('2022-12-31'),
+      'usr1'
     ),
     new Place(
       'p3',
@@ -31,18 +35,38 @@ export class PlacesService {
       'https://homesoftherich.net/wp-content/uploads/2021/03/Screen-Shot-2021-03-18-at-11.04.11-AM.png',
       189.99,
       new Date('2022-01-01'),
-      new Date('2022-12-31')
+      new Date('2022-12-31'),
+      'usr1'
     ),
   ];
 
-  constructor() {}
+  constructor(private authService: AuthService) {}
 
   get places() {
     return [...this.placesArray];
   }
 
-  getPlace(id: string){
-    return {...this.placesArray.find(p => p.id === id)};
+  getPlace(id: string) {
+    return { ...this.placesArray.find((p) => p.id === id) };
+  }
 
+  addPlace(
+    title: string,
+    description: string,
+    price: number,
+    dateFrom: Date,
+    dateTo: Date
+  ) {
+    const newPlace = new Place(
+      Math.random().toString(),
+      title,
+      description,
+      'https://cdn3.dpmag.com/2021/07/Landscape-Tips-Mike-Mezeul-II.jpg',
+      price,
+      dateFrom,
+      dateTo,
+      this.authService.getUserId()
+    );
+    this.placesArray.push(newPlace);
   }
 }
