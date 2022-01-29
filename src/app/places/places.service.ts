@@ -145,12 +145,12 @@ export class PlacesService {
   }
 
   updatePlace(placeId: string, title: string, description: string) {
+    let updatedPlaces: Place[];
     return this.places.pipe(
       take(1),
-      delay(1500),
-      tap((places) => {
+      switchMap((places) => {
         const updatedPlaceIndex = places.findIndex((pl) => pl.id === placeId);
-        const updatedPlaces = [...places];
+        updatedPlaces = [...places];
         const oldPlace = updatedPlaces[updatedPlaceIndex];
         updatedPlaces[updatedPlaceIndex] = new Place(
           oldPlace.id,
@@ -162,8 +162,33 @@ export class PlacesService {
           oldPlace.availableTo,
           oldPlace.userId
         );
+        return this.http.put(
+          `https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/offered-places/${placeId}.json`,
+          { ...updatedPlaces[updatedPlaceIndex], id: null }
+        );
+      }), tap(() => {
         this.placesArray.next(updatedPlaces);
-      })
+      } )
     );
+    // return this.places.pipe(
+    //   take(1),
+    //   //delay(1500),
+    //   tap((places) => {
+    //     const updatedPlaceIndex = places.findIndex((pl) => pl.id === placeId);
+    //     const updatedPlaces = [...places];
+    //     const oldPlace = updatedPlaces[updatedPlaceIndex];
+    //     updatedPlaces[updatedPlaceIndex] = new Place(
+    //       oldPlace.id,
+    //       title,
+    //       description,
+    //       oldPlace.imageUrl,
+    //       oldPlace.price,
+    //       oldPlace.availableFrom,
+    //       oldPlace.availableTo,
+    //       oldPlace.userId
+    //     );
+    //     this.placesArray.next(updatedPlaces);
+    //   })
+    // );
   }
 }
