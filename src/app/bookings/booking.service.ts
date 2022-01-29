@@ -45,5 +45,13 @@ export class BookingService {
     );
   }
 
-  cancelBooking(bookingId: string) {}
+  cancelBooking(bookingId: string) {
+    return this.bookings.pipe(
+      take(1),
+      delay(1500),
+      tap((bookings) => {
+        this.bookings.next(bookings.filter(b => b.id !== bookingId));
+      })
+    );
+  }
 }

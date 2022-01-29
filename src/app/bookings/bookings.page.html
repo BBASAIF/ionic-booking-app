@@ -10,9 +10,24 @@
 <ion-content>
   <ion-grid>
     <ion-row>
-      <ion-col sizeMd="6" offsetMd="3">
+      <ion-col
+        sizeSm="6"
+        offsetSm="3"
+        *ngIf="!loadedBookings || loadedBookings.length <= 0"
+        class="ion-text-center ion-padding"
+      >
+        <p>No Bookings Found!</p>
+      </ion-col>
+      <ion-col
+        sizeMd="6"
+        offsetMd="3"
+        *ngIf="loadedBookings && loadedBookings.length > 0"
+      >
         <ion-list>
-          <ion-item-sliding *ngFor="let booking of loadedBookings" #slidingBooking>
+          <ion-item-sliding
+            *ngFor="let booking of loadedBookings"
+            #slidingBooking
+          >
             <ion-item>
               <ion-label>
                 <h5>{{booking.placeTitle}}</h5>
@@ -21,7 +36,11 @@
             </ion-item>
             <ion-item-options>
               <ion-item-option color="danger">
-                <ion-icon name="trash" slot="icon-only" (click)="onCancelBooking(booking.id, slidingBooking)"></ion-icon>
+                <ion-icon
+                  name="trash"
+                  slot="icon-only"
+                  (click)="onCancelBooking(booking.id, slidingBooking)"
+                ></ion-icon>
               </ion-item-option>
             </ion-item-options>
           </ion-item-sliding>
