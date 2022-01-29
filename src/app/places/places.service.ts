@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 
 import { AuthService } from '../auth/auth.service';
@@ -95,10 +95,30 @@ export class PlacesService {
   }
 
   getPlace(id: string) {
-    return this.placesArray.pipe(
-      take(1),
-      map((placess) => ({ ...placess.find((p) => p.id === id) }))
-    );
+    return this.http
+      .get<PlaceData>(
+        `https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/offered-places/${id}.json`
+      )
+      .pipe(
+        map(
+          (placeData) =>
+            new Place(
+              id,
+              placeData.title,
+              placeData.description,
+              placeData.imageUrl,
+              placeData.price,
+              new Date(placeData.availableFrom),
+              new Date(placeData.availableTo),
+              placeData.userId
+            )
+        )
+      );
+
+    // return this.placesArray.pipe(
+    //   take(1),
+    //   map((placess) => ({ ...placess.find((p) => p.id === id) }))
+    // );
   }
 
   addPlace(
@@ -149,6 +169,13 @@ export class PlacesService {
     return this.places.pipe(
       take(1),
       switchMap((places) => {
+        if (!places || places.length <= 0) {
+          return this.fetchPlaces();
+        } else {
+          return of(places);
+        }
+      }),
+      switchMap((places) => {
         const updatedPlaceIndex = places.findIndex((pl) => pl.id === placeId);
         updatedPlaces = [...places];
         const oldPlace = updatedPlaces[updatedPlaceIndex];
@@ -166,9 +193,10 @@ export class PlacesService {
           `https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/offered-places/${placeId}.json`,
           { ...updatedPlaces[updatedPlaceIndex], id: null }
         );
-      }), tap(() => {
+      }),
+      tap(() => {
         this.placesArray.next(updatedPlaces);
-      } )
+      })
     );
     // return this.places.pipe(
     //   take(1),
