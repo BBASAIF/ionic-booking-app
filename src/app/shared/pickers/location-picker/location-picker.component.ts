@@ -1,11 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { ActionSheetController, ModalController } from '@ionic/angular';
+import {
+  ActionSheetController,
+  AlertController,
+  ModalController,
+} from '@ionic/angular';
 import { MapModalComponent } from '../../map-modal/map-modal.component';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 import { environment } from '../../../../environments/environment';
 import { map, switchMap } from 'rxjs/operators';
-import { PlaceLocation } from 'src/app/places/location.model';
+import { Coordinates, PlaceLocation } from 'src/app/places/location.model';
 import { of } from 'rxjs';
 
 @Component({
@@ -20,7 +26,8 @@ export class LocationPickerComponent implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private http: HttpClient,
-    private actionSheetCtrl: ActionSheetController
+    private actionSheetCtrl: ActionSheetController,
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit() {}
@@ -50,7 +57,31 @@ export class LocationPickerComponent implements OnInit {
       });
   }
 
-  private locateUser() {}
+  private locateUser() {
+    if (!Capacitor.isPluginAvailable('Geolocation')) {
+      this.showErrorAlert();
+      return;
+    }
+    Geolocation.getCurrentPosition()
+      .then((geoPosition) => {
+        const coordinates: Coordinates = {
+          lat: geoPosition.coords.latitude,
+          lng: geoPosition.coords.longitude,
+        };
+      })
+      .catch((err) => {
+        this.showErrorAlert();
+      });
+  }
+
+  private showErrorAlert() {
+    this.alertCtrl
+      .create({
+        header: 'Could not fetch location',
+        message: 'Please use the map to pick a location!',
+      })
+      .then((alertEl) => alertEl.present());
+  }
 
   private openMap() {
     this.modalCtrl.create({ component: MapModalComponent }).then((modalEl) => {
