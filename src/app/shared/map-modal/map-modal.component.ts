@@ -1,5 +1,14 @@
-import { AfterViewInit, Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnInit,
+  Renderer2,
+  ViewChild,
+} from '@angular/core';
 import { ModalController } from '@ionic/angular';
+
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-map-modal',
@@ -9,24 +18,37 @@ import { ModalController } from '@ionic/angular';
 export class MapModalComponent implements OnInit, AfterViewInit {
   @ViewChild('map') mapElementRef: ElementRef;
 
-  constructor(private modalCtrl: ModalController, private renderer: Renderer2) {}
+  constructor(
+    private modalCtrl: ModalController,
+    private renderer: Renderer2
+  ) {}
 
   ngOnInit() {}
 
   ngAfterViewInit() {
-    this.getGoogleMaps().then(googleMaps => {
-      const mapEl = this.mapElementRef.nativeElement;
-      const map = new googleMaps.Map(mapEl, {
-        center: { lat: -34.397, lng: 150.644},
-        zoom: 16
-      });
+    this.getGoogleMaps()
+      .then((googleMaps) => {
+        const mapEl = this.mapElementRef.nativeElement;
+        const map = new googleMaps.Map(mapEl, {
+          center: { lat: -34.397, lng: 150.644 },
+          zoom: 16,
+        });
 
-      googleMaps.event.addListenerOnce(map, 'idle', () => {
-        this.renderer.addClass(mapEl, 'visible');
+        googleMaps.event.addListenerOnce(map, 'idle', () => {
+          this.renderer.addClass(mapEl, 'visible');
+        });
+
+        map.addListener('click', (event) => {
+          const selectedCoords = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng(),
+          };
+          this.modalCtrl.dismiss(selectedCoords);
+        });
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    }).catch(err => {
-      console.log(err);
-    });
   }
 
   onCancel() {
@@ -42,15 +64,15 @@ export class MapModalComponent implements OnInit, AfterViewInit {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src =
-        'https://maps.googleapis.com/maps/api/js?key=AIzaSyDy6bWxaanyUI_grSeg1YZWPHIICdiPlxE';
+        'https://maps.googleapis.com/maps/api/js?key=' + environment.googleMapsAPIKey;
       script.async = true;
       script.defer = true;
       document.body.appendChild(script);
       script.onload = () => {
         const loadedGoogleModule = win.google;
-        if (loadedGoogleModule && loadedGoogleModule.maps){
+        if (loadedGoogleModule && loadedGoogleModule.maps) {
           resolve(loadedGoogleModule.maps);
-        }else{
+        } else {
           reject('Google maps SDK not available.');
         }
       };
