@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ActionSheetController, ModalController } from '@ionic/angular';
 import { MapModalComponent } from '../../map-modal/map-modal.component';
 
 import { environment } from '../../../../environments/environment';
@@ -17,11 +17,42 @@ export class LocationPickerComponent implements OnInit {
   @Output() locationPick = new EventEmitter<PlaceLocation>();
   selectedLocationImage: string;
   isLoading = false;
-  constructor(private modalCtrl: ModalController, private http: HttpClient) {}
+  constructor(
+    private modalCtrl: ModalController,
+    private http: HttpClient,
+    private actionSheetCtrl: ActionSheetController
+  ) {}
 
   ngOnInit() {}
 
   onPickLocation() {
+    this.actionSheetCtrl
+      .create({
+        header: 'Please Choose',
+        buttons: [
+          {
+            text: 'Auto Locate',
+            handler: () => {
+              this.locateUser();
+            },
+          },
+          {
+            text: 'Pick on Map',
+            handler: () => {
+              this.openMap();
+            },
+          },
+          { text: 'Cancel', role: 'cansel' },
+        ],
+      })
+      .then((actionSheetEl) => {
+        actionSheetEl.present();
+      });
+  }
+
+  private locateUser() {}
+
+  private openMap() {
     this.modalCtrl.create({ component: MapModalComponent }).then((modalEl) => {
       modalEl.onDidDismiss().then((modalData) => {
         if (!modalData.data) {
