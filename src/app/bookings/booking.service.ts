@@ -38,34 +38,40 @@ export class BookingService {
     dateTo: Date
   ) {
     let generatedId: string;
-    const newBooking = new Booking(
-      Math.random().toString(),
-      placeId,
-      this.authService.getUserId(),
-      placeTitle,
-      placeImage,
-      firstName,
-      lastName,
-      guestNumber,
-      dateFrom,
-      dateTo
+    let newBooking: Booking;
+    return this.authService.getUserId().pipe(
+      take(1),
+      switchMap((userId) => {
+        if (!userId) {
+          throw new Error('No user id found!');
+        }
+        newBooking = new Booking(
+          Math.random().toString(),
+          placeId,
+          userId,
+          placeTitle,
+          placeImage,
+          firstName,
+          lastName,
+          guestNumber,
+          dateFrom,
+          dateTo
+        );
+        return this.http.post<{ name: string }>(
+          'https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/bookings.json',
+          { ...newBooking, id: null }
+        );
+      }),
+      switchMap((resData) => {
+        generatedId = resData.name;
+        return this.bookings;
+      }),
+      take(1),
+      tap((bookings) => {
+        newBooking.id = generatedId;
+        this.bookings.next(bookings.concat(newBooking));
+      })
     );
-    return this.http
-      .post<{ name: string }>(
-        'https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/bookings.json',
-        { ...newBooking, id: null }
-      )
-      .pipe(
-        switchMap((resData) => {
-          generatedId = resData.name;
-          return this.bookings;
-        }),
-        take(1),
-        tap((bookings) => {
-          newBooking.id = generatedId;
-          this.bookings.next(bookings.concat(newBooking));
-        })
-      );
     // return this.bookings.pipe(
     //   take(1),
     //   delay(1500),
@@ -83,7 +89,7 @@ export class BookingService {
       .pipe(
         switchMap(() => this.bookings),
         take(1),
-        tap(bookings => {
+        tap((bookings) => {
           this.bookings.next(bookings.filter((b) => b.id !== bookingId));
         })
       );

@@ -144,33 +144,39 @@ export class PlacesService {
     imageUrl: string
   ) {
     let generatedId: string;
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      imageUrl,
-      price,
-      dateFrom,
-      dateTo,
-      this.authService.getUserId(),
-      location
+    let newPlace: Place;
+    return this.authService.getUserId().pipe(
+      take(1),
+      switchMap((userId) => {
+        if (!userId) {
+          throw new Error('No user found!');
+        }
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          imageUrl,
+          price,
+          dateFrom,
+          dateTo,
+          userId,
+          location
+        );
+        return this.http.post<{ name: string }>(
+          'https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/offered-places.json',
+          { ...newPlace, id: null }
+        );
+      }),
+      switchMap((resData) => {
+        generatedId = resData.name;
+        return this.places;
+      }),
+      take(1),
+      tap((places) => {
+        newPlace.id = generatedId;
+        this.placesArray.next(places.concat(newPlace));
+      })
     );
-    return this.http
-      .post<{ name: string }>(
-        'https://ionic-booking-app-91a0f-default-rtdb.firebaseio.com/offered-places.json',
-        { ...newPlace, id: null }
-      )
-      .pipe(
-        switchMap((resData) => {
-          generatedId = resData.name;
-          return this.places;
-        }),
-        take(1),
-        tap((places) => {
-          newPlace.id = generatedId;
-          this.placesArray.next(places.concat(newPlace));
-        })
-      );
     // return this.placesArray.pipe(
     //   take(1),
     //   delay(1500),

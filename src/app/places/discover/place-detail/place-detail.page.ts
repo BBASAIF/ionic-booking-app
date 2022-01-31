@@ -8,6 +8,7 @@ import {
   NavController,
 } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { BookingService } from 'src/app/bookings/booking.service';
 
@@ -47,13 +48,23 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         //console.log('logme');
         return;
       }
+      let fetchedUserId: string;
       this.isLoading = true;
-      this.placeSub = this.placesService
-        .getPlace(paramMap.get('placeId'))
+      this.authService
+        .getUserId()
+        .pipe(
+          switchMap((userId) => {
+            if (!userId) {
+              throw new Error('Found no user!');
+            }
+            fetchedUserId = userId;
+            return this.placesService.getPlace(paramMap.get('placeId'));
+          })
+        )
         .subscribe(
           (place) => {
             this.place = place;
-            this.isBookable = place.userId !== this.authService.getUserId();
+            this.isBookable = place.userId !== fetchedUserId;
             this.isLoading = false;
           },
           (error) => {
@@ -147,12 +158,18 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
 
   onShowFullMap() {
     this.modalCtrl
-      .create({ component: MapModalComponent, componentProps: {
-        center: {lat: this.place.location.lat, lng: this.place.location.lng},
-        selectable: false,
-        closeButtonText: 'close',
-        title: this.place.location.address
-      } })
+      .create({
+        component: MapModalComponent,
+        componentProps: {
+          center: {
+            lat: this.place.location.lat,
+            lng: this.place.location.lng,
+          },
+          selectable: false,
+          closeButtonText: 'close',
+          title: this.place.location.address,
+        },
+      })
       .then((modleEl) => {
         modleEl.present();
       });
