@@ -36,7 +36,9 @@
           </ion-item>
         </ion-col>
       </ion-row>
-      <ion-row *ngIf="!form.get('description').valid && form.get('description').touched">
+      <ion-row
+        *ngIf="!form.get('description').valid && form.get('description').touched"
+      >
         <ion-col sizeSm="6" offsetSm="3">
           <p>Description must be between 1 and 180 characters.</p>
         </ion-col>
@@ -73,7 +75,16 @@
       </ion-row>
       <ion-row>
         <ion-col sizeSm="6" offsetSm="3">
-          <app-location-picker (locationPick)="onLocationPicked($event)"></app-location-picker>
+          <app-location-picker
+            (locationPick)="onLocationPicked($event)"
+          ></app-location-picker>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col sizeSm="6" offsetSm="3">
+          <app-image-picker
+            (imagePick)="onImagePicked($event)"
+          ></app-image-picker>
         </ion-col>
       </ion-row>
     </ion-grid>
