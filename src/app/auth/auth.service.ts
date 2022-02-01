@@ -107,6 +107,7 @@ export class AuthService {
   logout() {
     //this.userIsAuthenticated = false;
     this.user.next(null);
+    Storage.remove({key: 'authData'});
   }
 
   private setUserData(userData: AuthResponseData) {

@@ -53,9 +53,9 @@ export class AuthPage implements OnInit {
             if (code === 'EMAIL_EXISTS') {
               message = 'This email address exists already!';
             } else if (code === 'EMAIL_NOT_FOUND') {
-              message = 'E-Mail Address could not be found.'
+              message = 'E-Mail Address could not be found.';
             } else if (code === 'INVALID_PASSWORD') {
-              message = 'Password is Invalid.'
+              message = 'Password is Invalid.';
             }
             this.showAlert(message);
           }
@@ -71,6 +71,7 @@ export class AuthPage implements OnInit {
     const password = form.value.password;
 
     this.authenticate(email, password);
+    form.reset();
 
     // if (this.isLogin) {
     //   // Send a request to login servers
