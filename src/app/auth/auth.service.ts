@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, from } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Storage } from '@capacitor/storage';
@@ -22,6 +22,7 @@ export interface AuthResponseData {
 export class AuthService {
   //private userIsAuthenticated = false;
   private user = new BehaviorSubject<User>(null);
+  private activeLogoutTimer: any;
 
   constructor(private http: HttpClient) {}
 
@@ -52,12 +53,22 @@ export class AuthService {
       tap((user) => {
         if (user) {
           this.user.next(user);
+          this.autoLogout(user.tokenDuration);
         }
       }),
       map((user) => {
         return !!user;
       })
     );
+  }
+
+  private autoLogout(duration: number) {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
+    this.activeLogoutTimer = setTimeout(() => {
+      this.logout();
+    }, duration);
   }
 
   getUserIsAuthenticated() {
@@ -106,22 +117,26 @@ export class AuthService {
 
   logout() {
     //this.userIsAuthenticated = false;
+
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
     this.user.next(null);
-    Storage.remove({key: 'authData'});
+    Storage.remove({ key: 'authData' });
   }
 
   private setUserData(userData: AuthResponseData) {
     const expirationTime = new Date(
       new Date().getTime() + +userData.expiresIn * 1000
     );
-    this.user.next(
-      new User(
-        userData.localId,
-        userData.email,
-        userData.idToken,
-        expirationTime
-      )
+    const user = new User(
+      userData.localId,
+      userData.email,
+      userData.idToken,
+      expirationTime
     );
+    this.user.next(user);
+    this.autoLogout(user.tokenDuration);
     this.storeAuthData(
       userData.localId,
       userData.idToken,
@@ -143,5 +158,11 @@ export class AuthService {
       email: email,
     });
     Storage.set({ key: 'authData', value: data });
+  }
+
+  ngOnDestroy() {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
   }
 }
