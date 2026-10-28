@@ -32,3 +32,6 @@ npm-debug.log*
 /.angular
 /.angular/cache
 /src/environments
+
+# Private Firebase service-account credentials
+/functions/ionic-app.json
