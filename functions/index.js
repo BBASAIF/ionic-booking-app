@@ -22,9 +22,8 @@ const storage = new Storage({
   projectId: "ionic-booking-app-91a0f",
 });
 
-fbAdmin.initializeApp({
-  credential: fbAdmin.credential.cert(require("./ionic-app.json")),
-});
+// Use the runtime's Application Default Credentials instead of a checked-in key.
+fbAdmin.initializeApp();
 
 exports.storeImage = functions.https.onRequest((req, res) => {
   return cors(req, res, () => {
